@@ -41,7 +41,7 @@ namespace CausewayStudios.Tools.InspectorToolbar
             nextSelections = new DropOutStack<Object>(capacity);
             previousSelections = new DropOutStack<Object>(capacity);
 
-            Selection.selectionChanged += HandleSelectionChange;
+            //Selection.selectionChanged += HandleSelectionChange;
         }
 
         public void OnEnable()
@@ -79,7 +79,7 @@ namespace CausewayStudios.Tools.InspectorToolbar
             historyButton.clickable.clicked += ShowHistory;
         }
 
-        static void HandleSelectionChange()
+        void OnSelectionChange()
         {
             backButton.SetEnabled(ValidateBack());
             forwardButton.SetEnabled(ValidateForward());
