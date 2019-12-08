@@ -55,7 +55,6 @@ namespace CausewayStudios.Tools.InspectorToolbar
 
             VisualElement root = rootVisualElement;
 
-			Debug.Log(InspectorToolbarPackagePath + "/InspectorToolbar.uss");
             var styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>(InspectorToolbarPackagePath + "/InspectorToolbar.uss");
 
             root.styleSheets.Add(styleSheet);
