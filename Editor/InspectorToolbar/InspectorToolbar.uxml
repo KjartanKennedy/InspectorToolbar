@@ -1,0 +1,13 @@
+<UXML xmlns="UnityEngine.UIElements">
+    <VisualElement class="toolbar-buttons-container">
+        <Button class="toolbar-button" name="Back">
+            <VisualElement class="toolbar-button-icon"/>
+        </Button>
+        <Button class="toolbar-button" name="History">
+            <VisualElement class="toolbar-button-icon"/>
+        </Button>
+        <Button class="toolbar-button" name="Forward">
+            <VisualElement class="toolbar-button-icon"/>
+        </Button>
+    </VisualElement>
+</UXML>

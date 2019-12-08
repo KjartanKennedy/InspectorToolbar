@@ -1,0 +1,45 @@
+.toolbar-buttons-container {
+    padding: 4px;
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+.toolbar-button {
+    width: 16px;
+    height: 16px;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 0px;
+    margin: 0px;
+    background-image: none;
+}
+
+.toolbar-button:hover {
+    background-color: #a7a7a7;
+}
+
+.toolbar-button:disabled > .toolbar-button-icon {
+    opacity: 0.5;
+}
+
+.toolbar-button-icon {
+    width: 16px;
+    height: 16px;
+    opacity: 0.8;
+}
+
+#Back > .toolbar-button-icon {
+    background-image: resource("com.causewaystudios.inspectortoolbar/Icons/Light/back-icon");
+}
+
+#History > .toolbar-button-icon {
+    background-image: resource("com.causewaystudios.inspectortoolbar/Icons/Light/history-icon");
+}
+
+#Forward > .toolbar-button-icon {
+    background-image: resource("com.causewaystudios.inspectortoolbar/Icons/Light/forward-icon");
+}
+
+.toolbar-button-icon:hover {
+    opacity: 1;
+}
