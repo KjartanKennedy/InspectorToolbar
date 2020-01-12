@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEditor.UIElements;
 using System.Collections.Generic;
+using PopupWindow = UnityEditor.PopupWindow;
 
 namespace CausewayStudios.Tools.InspectorToolbar
 {
@@ -104,50 +105,34 @@ namespace CausewayStudios.Tools.InspectorToolbar
             forwardButton.SetEnabled(ValidateForward());
         }
 
+
+        Rect histRect;
+        static HistoryWindow historyWindow;
+
         void ShowHistory()
         {
-            VisualElement root = rootVisualElement;
-            Object[] forwardStack = GetForwardStack();
-            Object[] backStack = GetBackStack();
-
-            if (historyStack != null)
-            {
-                root.Remove(historyStack);
-            }
+            historyWindow = new HistoryWindow(this);
             
 
-            var visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(InspectorToolbarPackagePath + "/historyStack.uxml");
-            historyStack = visualTree.CloneTree();
+            
 
-            for (int i = forwardStack.Length - 1; i >= 0f; i--)
-            {
-                Label forwardItem = new Label(forwardStack[i].name);
-                historyStack.Add(forwardItem);
-            }
+            //PopupWindow.Show(historyStack);
+            UnityEditor.PopupWindow.Show(histRect, historyWindow);
+            
+            Repaint();
+            if (Event.current.type == EventType.Repaint) histRect = GUILayoutUtility.GetLastRect();
 
-            Label currentItem = new Label("[" + activeSelection.name + "]");
-            historyStack.Add(currentItem);
-
-            foreach (Object o in backStack)
-            {
-                Label backItem = new Label(o.name);
-                historyStack.Add(backItem);
-            }
-
-            root.Add(historyStack);
+            //root.Add(historyStack);
         }
 
-        void test()
-        {
+        
 
-        }
-
-        Object[] GetBackStack()
+        public Object[] GetBackStack()
         {
             return previousSelections.GetStack();
         }
 
-        Object[] GetForwardStack()
+        public Object[] GetForwardStack()
         {
             return nextSelections.GetStack();
         }
@@ -187,6 +172,39 @@ namespace CausewayStudios.Tools.InspectorToolbar
 
         }
 
+        public static void GoToHistoryItem(Object obj)
+        {
+            if (previousSelections.Contains(obj))
+            {
+                nextSelections.Push(activeSelection);
+                var itemToMove = previousSelections.Pop();
+
+                while (itemToMove != obj)
+                {
+                    nextSelections.Push(itemToMove);
+                    itemToMove = previousSelections.Pop();
+                }
+            }
+            else if (nextSelections.Contains(obj))
+            {
+                previousSelections.Push(activeSelection);
+                var itemToMove = nextSelections.Pop();
+
+                while (itemToMove != obj)
+                {
+                    previousSelections.Push(itemToMove);
+                    itemToMove = nextSelections.Pop();
+                }
+            }
+
+            ignoreNextSelectionChangedEvent = true;
+
+            Selection.activeObject = obj;
+            activeSelection = Selection.activeObject;
+
+            historyWindow.Repaint();
+        }
+
         [MenuItem(backMenuLabel, true)]
         static bool ValidateBack()
         {
@@ -199,5 +217,117 @@ namespace CausewayStudios.Tools.InspectorToolbar
             return !nextSelections.IsEmpty();
         }
         #endregion
+
+        public class HistoryWindow : PopupWindowContent
+        {
+            // TODO: Change rendering method, have clickable mouse pointer on hover of item, change size and position
+
+            private InspectorToolbar m_Window;
+            TemplateContainer historyStack;
+
+            private bool rendered = false;
+
+            public HistoryWindow(InspectorToolbar m_Window)
+            {
+                this.m_Window = m_Window;
+
+                //historyItemStyle = new GUIStyle();
+                //historyItemStyle.contentOffset = new Vector2(4, 0);
+                //historyItemStyle.fixedHeight = 20.0f;
+                //historyItemStyle.stretchWidth = true;
+            }
+
+            public void Repaint()
+            {
+                rendered = false;
+            }
+
+            public override void OnGUI(Rect rect)
+            {
+                if (rendered) return;
+
+                if (editorWindow != null)
+                {
+                    editorWindow.minSize = new Vector2(300.0f, 450.0f);
+                }
+
+                VisualElement root = this.editorWindow.rootVisualElement;
+                Object[] forwardStack = m_Window.GetForwardStack();
+                Object[] backStack = m_Window.GetBackStack();
+
+                if (historyStack != null)
+                {
+                    root.Remove(historyStack);
+                }
+
+
+
+                var visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(InspectorToolbarPackagePath + "/historyStack.uxml");
+                historyStack = visualTree.CloneTree();
+
+                var itemTemplate = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(InspectorToolbarPackagePath + "/HistoryItem.uxml");
+                var styleSheet = AssetDatabase.LoadAssetAtPath<StyleSheet>(InspectorToolbarPackagePath + "/InspectorToolbar.uss");
+
+                root.styleSheets.Add(styleSheet);
+
+                for (int i = forwardStack.Length - 1; i >= 0f; i--)
+                {
+                    CreateHistoryItem(itemTemplate, forwardStack[i], historyStack);
+                }
+
+                Label currentItem = new Label("[" + activeSelection.name + "]");
+                historyStack.Add(currentItem);
+
+                foreach (Object o in backStack)
+                {
+                    CreateHistoryItem(itemTemplate, o, historyStack);
+                }
+
+                root.Add(historyStack);
+
+                rendered = true;
+            }
+
+            public void CreateHistoryItem(VisualTreeAsset template, Object item, VisualElement historyStack)
+            {
+                var itemElement = template.CloneTree();
+                //Label forwardItem = new Label(forwardStack[i].name);
+
+                var itemElementIcon = itemElement.Q<Image>("Icon");
+                var icon = EditorGUIUtility.ObjectContent(item, item.GetType()).image;
+                //var icon = EditorGUIUtility.IconContent(item.GetType().ToString()).image;
+                itemElementIcon.image = icon;
+
+                var itemElementName = itemElement.Q<Label>("Name");
+                itemElementName.text = item.name;
+
+                var pingButton = itemElement.Q<Button>("Ping");
+                pingButton.tooltip = "Ping";
+                pingButton.clickable.clicked += () =>
+                {
+                    EditorGUIUtility.PingObject(item);
+                };
+
+                itemElement.RegisterCallback<MouseDownEvent, Object>(HistoryItemMouseDown, item);
+
+
+                historyStack.Add(itemElement);
+            }
+
+            void HistoryItemMouseDown(MouseDownEvent evt, Object item)
+            {
+                var mouseStartDrag = false;
+                var mouseClick = true;
+                //mouseStartDrag = (evt.type == EventType.MouseDrag) && evt.button == 0;
+                //mouseClick = (evt.type == EventType.MouseUp) && evt.button == 0 && evt.clickCount == 1;
+
+                if (mouseClick)
+                {
+                    InspectorToolbar.GoToHistoryItem(item);
+                }
+            }
+        }
     }
+
+    
 }

@@ -1,0 +1,7 @@
+﻿<UXML xmlns="UnityEngine.UIElements">
+    <VisualElement class="history-item">
+        <Image class="item-icon" name="Icon" />
+        <Label class="item-name" name="Name" />
+        <Button class="item-pinger" name="Ping" />
+    </VisualElement>
+</UXML>

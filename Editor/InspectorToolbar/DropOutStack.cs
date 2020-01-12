@@ -72,6 +72,19 @@ namespace CausewayStudios.Tools.InspectorToolbar
             return stack;
         }
 
+        public bool Contains(T item)
+        {
+            for (int i = 0; i < items.Length; i++)
+            {
+                if (items[i] != null && item != null && items[i].Equals(item))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         // This doesn't work when making it smaller than the current count
         public void Resize(int newCapacity)
         {

@@ -43,3 +43,27 @@
 .toolbar-button-icon:hover {
     opacity: 1;
 }
+
+.history-item {
+    flex-direction: row;
+    justify-content: center;
+    height: 18px;
+    padding: 1px 4px;
+}
+
+.history-item:hover {
+    background-color: #a7a7a7;
+}
+
+.item-icon {
+    width: 16px;
+    height: 16px;
+    margin-right: 4px;
+}
+
+.item-name {
+    flex-grow: 1;
+    margin: 0px;
+}
+
+
